@@ -4,6 +4,14 @@
     {
         static void Main(string[] args)
         {
+            Launch();
+
+        }
+
+
+
+        static void Launch()
+        {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
 
             ConsoleKey choice;
@@ -28,9 +36,8 @@
                         Console.WriteLine("Генерируем проекты из include");
                         break;
                 }
-            } 
+            }
             while (choice != ConsoleKey.Y && choice != ConsoleKey.N && choice != ConsoleKey.Enter);
-
         }
     }
 }
