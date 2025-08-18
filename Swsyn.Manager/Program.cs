@@ -42,6 +42,30 @@ namespace Swsyn.Manager
             }
 
         }
+
+       static void EnteringProjects()
+        {
+            Console.WriteLine("Type project names (comma separated) (Введите названия проектов через запятую и нажмите Enter):");
+            string input = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                Console.WriteLine("Вы не ввели ни одного проекта!");
+                return;
+            }
+
+            string[] projects = input.Split(',')
+                                   .Select(project => project.Trim())
+                                   .Where(project => !string.IsNullOrEmpty(project))
+                                   .ToArray();
+
+            Console.WriteLine("\nСписок проектов для генерации отчетов:");
+            foreach (string project in projects)
+            {
+                Console.WriteLine($"- {project}");
+            }
+
+        }
         static void Launch(AppSettings settings)
         {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
@@ -55,7 +79,7 @@ namespace Swsyn.Manager
                     // Y ! key
                     case ConsoleKey.Y:
                         Console.Clear();
-                        Console.WriteLine("Выбор нужных проектов");
+                        EnteringProjects();
                         break;
                     //N @ key
                     case ConsoleKey.N:
