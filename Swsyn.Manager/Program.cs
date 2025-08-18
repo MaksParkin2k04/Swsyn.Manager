@@ -12,8 +12,12 @@ namespace Swsyn.Manager
                 IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                 AppSettings? settings = config.Get<AppSettings>();
 
-                if (settings == null) { throw new Exception("Settings Error"); }
-               // View(settings);
+                if (settings == null) 
+                { 
+                    throw new Exception("Settings Error");
+                }
+
+                Launch(settings);
             }
             catch (Exception ex)
             {
@@ -21,33 +25,24 @@ namespace Swsyn.Manager
                 Console.WriteLine(ex.ToString());
             }
 
-           
-
-            Launch();
+            //Launch();
         }
+        static void GeneratingProjectInclude(AppSettings settings)
+        {
+        
+            if (settings.Include == null)
+            {
+                Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
+            }
 
-        //static void View(AppSettings settings)
-        //{
-        //    Console.WriteLine($"SourcePath: '{settings.SourcePath}'.");
-        //    Console.WriteLine();
+            else if(settings.Include != null)
+            {
+                Console.WriteLine("Генерируем отчеты для проектов из include");
+                Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
+            }
 
-        //    Console.WriteLine("Projects:");
-        //    Console.WriteLine();
-
-        //    foreach (string projectName in settings.Projects.Keys)
-        //    {
-        //        ProjectOption projectOption = settings.Projects[projectName];
-        //        Console.WriteLine($"Project Name: '{projectName}'.");
-        //        Console.WriteLine($"Target Path: '{projectOption.TargetPath}'.");
-        //        Console.WriteLine($"Contractor: '{projectOption.Contractor}'.");
-        //        Console.WriteLine($"Customer: '{projectOption.Customer}'.");
-        //        Console.WriteLine();
-        //    }
-
-        //    Console.WriteLine($"Include: {string.Join(", ", settings.Include.Select(i => $"'{i}'"))}");
-        //}
-
-        static void Launch()
+        }
+        static void Launch(AppSettings settings)
         {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
 
@@ -65,12 +60,12 @@ namespace Swsyn.Manager
                     //N @ key
                     case ConsoleKey.N:
                         Console.Clear();
-                        Console.WriteLine("Генерируем проекты из include");
+                        GeneratingProjectInclude(settings);
                         break;
                     //Enter @ Key
                     case ConsoleKey.Enter:
                         Console.Clear();
-                        Console.WriteLine("Генерируем проекты из include");
+                        GeneratingProjectInclude(settings);
                         break;
                 }
             }
