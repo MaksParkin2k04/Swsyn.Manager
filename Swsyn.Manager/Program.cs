@@ -25,7 +25,6 @@ namespace Swsyn.Manager
                 Console.WriteLine(ex.ToString());
             }
 
-            //Launch();
         }
         static void GeneratingProjectInclude(AppSettings settings)
         {
