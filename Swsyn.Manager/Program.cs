@@ -1,5 +1,7 @@
 ﻿using Swsyn.Manager.ModelConfiguration;
 using Microsoft.Extensions.Configuration;
+using System.Globalization;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Swsyn.Manager
 {
@@ -12,8 +14,8 @@ namespace Swsyn.Manager
                 IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                 AppSettings? settings = config.Get<AppSettings>();
 
-                if (settings == null) 
-                { 
+                if (settings == null)
+                {
                     throw new Exception("Settings Error");
                 }
 
@@ -24,25 +26,90 @@ namespace Swsyn.Manager
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());
             }
-
         }
+
+        static void CurrentWeek()
+        {
+            DateTime today = DateTime.Today;
+
+            int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
+            DateTime monday = today.AddDays(-daysSinceMonday);
+
+            DateTime sunday = monday.AddDays(6);
+
+            Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
+        }
+
+        static void InputWeek()
+        {
+            Console.WriteLine("Выберите дату");
+
+            string targetDateFormat = "dd.MM.yyyy";
+            DateTime data;
+
+            Console.WriteLine($"Enter a date in the format {targetDateFormat}");
+            string enteredDateString = Console.ReadLine();
+
+            data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
+
+            if (data.DayOfWeek == DayOfWeek.Monday)
+            {
+                Console.WriteLine(data.DayOfWeek);
+                Console.WriteLine(data);
+                Console.WriteLine("Создаем отчет для недели", data.ToString("dd.MM.yyyy"));
+            }
+            else
+            {
+                Console.WriteLine("Введен не понедельник");
+            }
+        }
+
+        static void ProjectDataProcessing()
+        {
+
+            Console.WriteLine("Would you like to specify period? [y/n]");
+
+            ConsoleKey choice;
+            do
+            {
+                choice = Console.ReadKey(true).Key;
+                switch (choice)
+                {
+                    // Y ! key
+                    case ConsoleKey.Y:
+                        InputWeek();
+                        break;
+                    //N @ key
+                    case ConsoleKey.N:
+                        CurrentWeek();
+                        break;
+                    //Enter @ Key
+                    case ConsoleKey.Enter:
+                        CurrentWeek();
+                        break;
+                }
+            }
+            while (choice != ConsoleKey.Y && choice != ConsoleKey.N && choice != ConsoleKey.Enter);
+        }
+
         static void GeneratingProjectInclude(AppSettings settings)
         {
-        
+
             if (settings.Include == null)
             {
                 Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
             }
 
-            else if(settings.Include != null)
+            else if (settings.Include != null)
             {
                 Console.WriteLine("Генерируем отчеты для проектов из include");
                 Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
-            }
 
+                ProjectDataProcessing();
+            }
         }
 
-       static void EnteringProjects()
+        static void EnteringProjects()
         {
             Console.WriteLine("Type project names (comma separated) (Введите названия проектов через запятую и нажмите Enter):");
             string input = Console.ReadLine();
@@ -64,7 +131,9 @@ namespace Swsyn.Manager
                 Console.WriteLine($"- {project}");
             }
 
+            ProjectDataProcessing();
         }
+
         static void Launch(AppSettings settings)
         {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
