@@ -19,7 +19,13 @@ namespace Swsyn.Manager
                     throw new Exception("Settings Error");
                 }
 
-                Launch(settings);
+                // Получаем названия проектов для которых будут генерироваться отчеты.
+                string[]? projectNames = GetProjectNames(settings);
+
+                DateTime[] specifyPeriods = ProjectDataProcessing();
+
+                Console.WriteLine(projectNames);
+              //  Launch(settings);
             }
             catch (Exception ex)
             {
@@ -28,9 +34,9 @@ namespace Swsyn.Manager
             }
         }
 
-        static void CurrentWeek()
+        private static DateTime[] CurrentWeek()
         {
-            DateTime today = DateTime.Today;
+           DateTime today = DateTime.Today;
 
             int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
             DateTime monday = today.AddDays(-daysSinceMonday);
@@ -38,6 +44,8 @@ namespace Swsyn.Manager
             DateTime sunday = monday.AddDays(6);
 
             Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
+
+            return new DateTime[] { monday };
         }
 
         static void InputWeek()
@@ -64,7 +72,7 @@ namespace Swsyn.Manager
             }
         }
 
-        static void ProjectDataProcessing()
+        private static DateTime[] ProjectDataProcessing()
         {
 
             Console.WriteLine("Would you like to specify period? [y/n]");
@@ -77,64 +85,54 @@ namespace Swsyn.Manager
                 {
                     // Y ! key
                     case ConsoleKey.Y:
-                        InputWeek();
+                        Console.WriteLine("Выберите дату");
+
+                        string targetDateFormat = "dd.MM.yyyy";
+                        DateTime data;
+
+                        Console.WriteLine($"Enter a date in the format {targetDateFormat}");
+                        string enteredDateString = Console.ReadLine();
+
+                        data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
+
+                        if (data.DayOfWeek == DayOfWeek.Monday)
+                        {
+                            Console.WriteLine(data.DayOfWeek);
+                            Console.WriteLine(data);
+                            Console.WriteLine("Создаем отчет для недели", data.ToString("dd.MM.yyyy"));
+
+                            return new DateTime[] { data } ;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Введен не понедельник");
+                        }
                         break;
                     //N @ key
                     case ConsoleKey.N:
-                        CurrentWeek();
+                        DateTime today = DateTime.Today;
+
+                        int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
+                        DateTime monday = today.AddDays(-daysSinceMonday);
+
+                        DateTime sunday = monday.AddDays(6);
+
+                        Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
+
+                        return new DateTime[] { monday };
                         break;
                     //Enter @ Key
                     case ConsoleKey.Enter:
-                        CurrentWeek();
+                        CurrentWeek(); //Исправить 
                         break;
                 }
             }
             while (choice != ConsoleKey.Y && choice != ConsoleKey.N && choice != ConsoleKey.Enter);
+
+            return null;
         }
 
-        static void GeneratingProjectInclude(AppSettings settings)
-        {
-
-            if (settings.Include == null)
-            {
-                Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
-            }
-
-            else if (settings.Include != null)
-            {
-                Console.WriteLine("Генерируем отчеты для проектов из include");
-                Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
-
-                ProjectDataProcessing();
-            }
-        }
-
-        static void EnteringProjects()
-        {
-            Console.WriteLine("Type project names (comma separated) (Введите названия проектов через запятую и нажмите Enter):");
-            string input = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                Console.WriteLine("Вы не ввели ни одного проекта!");
-                return;
-            }
-
-            string[] projects = input.Split(',')
-                                   .Select(project => project.Trim())
-                                   .Where(project => !string.IsNullOrEmpty(project))
-                                   .ToArray();
-
-            Console.WriteLine("\nСписок проектов для генерации отчетов:");
-            foreach (string project in projects)
-            {
-                Console.WriteLine($"- {project}");
-            }
-
-            ProjectDataProcessing();
-        }
-
-        static void Launch(AppSettings settings)
+        private static string[]? GetProjectNames(AppSettings settings)
         {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
 
@@ -147,21 +145,61 @@ namespace Swsyn.Manager
                     // Y ! key
                     case ConsoleKey.Y:
                         Console.Clear();
-                        EnteringProjects();
-                        break;
+
+                        Console.WriteLine("Type project names (comma separated):");
+                        // Названия проектов через запятую
+                        string? projects = Console.ReadLine();
+                        // Возвращаем названия проектов, введенных пользователем
+                        return projects != null && projects != string.Empty ? projects.Split(',') : null;
+
                     //N @ key
                     case ConsoleKey.N:
+
                         Console.Clear();
-                        GeneratingProjectInclude(settings);
+
+                        if (settings.Include == null)
+                        {
+                          //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
+                            string[] error = { "There are no projects specified (Проекты не указаны в include)" };
+                            return error;
+                        }
+
+                        else if (settings.Include != null)
+                        {
+                            Console.WriteLine("Генерируем отчеты для проектов из include");
+                            Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
+                            return settings.Include;
+
+                            ProjectDataProcessing();
+                        }
                         break;
                     //Enter @ Key
                     case ConsoleKey.Enter:
+
                         Console.Clear();
-                        GeneratingProjectInclude(settings);
+
+                        if (settings.Include == null)
+                        {
+                            Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
+                        }
+
+                        else if (settings.Include != null)
+                        {
+                            Console.WriteLine("Генерируем отчеты для проектов из include");
+                            Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
+                            return settings.Include;
+
+                            ProjectDataProcessing();
+                        }
+
                         break;
                 }
             }
             while (choice != ConsoleKey.Y && choice != ConsoleKey.N && choice != ConsoleKey.Enter);
+
+            return null;
+
+            
         }
     }
 }
