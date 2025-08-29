@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Timesheets;
+using Timesheets.OpenXml;
 
 namespace Swsyn.Manager
 {
@@ -13,6 +15,7 @@ namespace Swsyn.Manager
             {
                 IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                 AppSettings? settings = config.Get<AppSettings>();
+                ITimesheetRepository timesheetRepository = new TimesheetRepository(settings.SourcePath);
 
                 if (settings == null)
                 {
@@ -25,7 +28,9 @@ namespace Swsyn.Manager
                 DateTime[] specifyPeriods = ProjectDataProcessing();
 
                 Console.WriteLine(projectNames);
-              //  Launch(settings);
+                //  Launch(settings);
+
+                GenerateTimesheet(timesheetRepository, projectNames, specifyPeriods, settings);
             }
             catch (Exception ex)
             {
@@ -200,6 +205,49 @@ namespace Swsyn.Manager
             return null;
 
             
+        }
+
+        private static void GenerateTimesheet(ITimesheetRepository timesheetRepository, string[] projectNames, DateTime[] mondayDates, AppSettings settings)
+        {
+            foreach (DateTime mondayDate in mondayDates)
+            {
+                // Получаем отчеты для недели
+                Timesheet[] tables = timesheetRepository.GetTimesheet(mondayDate);
+
+                foreach (string projectName in projectNames)
+                {
+                    try
+                    {
+                        // Когда начинает генерироваться отчет выводится сообщение:
+                        Console.WriteLine($"[{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}] Creating timesheet [{projectName} {mondayDate.ToString("dd.MM.yyyy")}]…");
+
+                        // Отфильтровываем задачи относящиеся к текущему проекту
+                        List<ProjectTask> projectTasks = new List<ProjectTask>();
+                        foreach (Timesheet table in tables)
+                        {
+                            ProjectTask[] tasks = table.Tasks.Where(t => t.Project == projectName).ToArray();
+                            projectTasks.AddRange(tasks);
+                        }
+
+                        // Получаем настройки проекта
+                        ProjectOption option = settings.Projects[projectName];
+
+                        // Создаем сводный табель учета рабочего времени для проекта
+                        Timesheet writeTable = new Timesheet(mondayDate, projectTasks);
+
+                        // Сохраняем сводный табель учета рабочего времени для проекта
+                        timesheetRepository.WriteTimesheet(option.TargetPath, projectName, writeTable, option.Contractor, option.Customer);
+
+                        // Если процесс завершился успешно
+                        Console.WriteLine($"[{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}] Timesheet [{projectName} {mondayDate.ToString("dd.MM.yyyy")}] was generated successfully.");
+                    }
+                    catch (Exception exception)
+                    {
+                        // Если произошла какая-либо другая непредвиденная ошибка
+                        throw new Exception($"[{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}] Failed to create timesheet [{projectName} {mondayDate.ToString("dd.MM.yyyy")}].", exception);
+                    }
+                }
+            }
         }
     }
 }
