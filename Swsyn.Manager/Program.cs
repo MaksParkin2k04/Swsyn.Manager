@@ -27,9 +27,6 @@ namespace Swsyn.Manager
 
                 DateTime[] specifyPeriods = ProjectDataProcessing();
 
-                Console.WriteLine(projectNames);
-                //  Launch(settings);
-
                 GenerateTimesheet(timesheetRepository, projectNames, specifyPeriods, settings);
             }
             catch (Exception ex)
@@ -39,7 +36,7 @@ namespace Swsyn.Manager
             }
         }
 
-        private static DateTime[] CurrentWeek()
+        public static DateTime[] CurrentWeek()
         {
            DateTime today = DateTime.Today;
 
