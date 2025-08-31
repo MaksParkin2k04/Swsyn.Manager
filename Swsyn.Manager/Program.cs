@@ -7,7 +7,7 @@ using Timesheets.OpenXml;
 
 namespace Swsyn.Manager
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -22,7 +22,6 @@ namespace Swsyn.Manager
                     throw new Exception("Settings Error");
                 }
 
-                // Получаем названия проектов для которых будут генерироваться отчеты.
                 string[]? projectNames = GetProjectNames(settings);
 
                 DateTime[] specifyPeriods = ProjectDataProcessing();
@@ -35,52 +34,11 @@ namespace Swsyn.Manager
                 Console.WriteLine(ex.ToString());
             }
         }
-
-        public static DateTime[] CurrentWeek()
-        {
-           DateTime today = DateTime.Today;
-
-            int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
-            DateTime monday = today.AddDays(-daysSinceMonday);
-
-            DateTime sunday = monday.AddDays(6);
-
-            Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
-
-            return new DateTime[] { monday };
-        }
-
-        static void InputWeek()
-        {
-            Console.WriteLine("Выберите дату");
-
-            string targetDateFormat = "dd.MM.yyyy";
-            DateTime data;
-
-            Console.WriteLine($"Enter a date in the format {targetDateFormat}");
-            string enteredDateString = Console.ReadLine();
-
-            data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
-
-            if (data.DayOfWeek == DayOfWeek.Monday)
-            {
-                Console.WriteLine(data.DayOfWeek);
-                Console.WriteLine(data);
-                Console.WriteLine("Создаем отчет для недели", data.ToString("dd.MM.yyyy"));
-            }
-            else
-            {
-                Console.WriteLine("Введен не понедельник");
-            }
-        }
-
         private static DateTime[] ProjectDataProcessing()
         {
-
             Console.WriteLine("Would you like to specify period? [y/n]");
-
             ConsoleKey choice;
-            do
+            while (true)
             {
                 choice = Console.ReadKey(true).Key;
                 switch (choice)
@@ -103,7 +61,7 @@ namespace Swsyn.Manager
                             Console.WriteLine(data);
                             Console.WriteLine("Создаем отчет для недели", data.ToString("dd.MM.yyyy"));
 
-                            return new DateTime[] { data } ;
+                            return new DateTime[] { data };
                         }
                         else
                         {
@@ -111,6 +69,7 @@ namespace Swsyn.Manager
                         }
                         break;
                     //N @ key
+                    case ConsoleKey.Enter:
                     case ConsoleKey.N:
                         DateTime today = DateTime.Today;
 
@@ -122,18 +81,9 @@ namespace Swsyn.Manager
                         Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
 
                         return new DateTime[] { monday };
-                        break;
-                    //Enter @ Key
-                    case ConsoleKey.Enter:
-                        CurrentWeek(); //Исправить 
-                        break;
                 }
             }
-            while (choice != ConsoleKey.Y && choice != ConsoleKey.N && choice != ConsoleKey.Enter);
-
-            return null;
         }
-
         private static string[]? GetProjectNames(AppSettings settings)
         {
             Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
@@ -161,7 +111,7 @@ namespace Swsyn.Manager
 
                         if (settings.Include == null)
                         {
-                          //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
+                            //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
                             string[] error = { "There are no projects specified (Проекты не указаны в include)" };
                             return error;
                         }
@@ -201,9 +151,8 @@ namespace Swsyn.Manager
 
             return null;
 
-            
-        }
 
+        }
         private static void GenerateTimesheet(ITimesheetRepository timesheetRepository, string[] projectNames, DateTime[] mondayDates, AppSettings settings)
         {
             foreach (DateTime mondayDate in mondayDates)
