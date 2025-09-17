@@ -48,21 +48,17 @@ namespace Swsyn.Manager
                 {
                     // Y ! key
                     case ConsoleKey.Y:
-                        Console.WriteLine("Выберите дату");
+                        Console.WriteLine("Type week Monday dates (e.g. 11.08.2025, 18.08.2025):");
 
                         string targetDateFormat = "dd.MM.yyyy";
                         DateTime data;
 
-                        Console.WriteLine($"Enter a date in the format {targetDateFormat}");
                         string enteredDateString = Console.ReadLine();
 
                         data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
 
                         if (data.DayOfWeek == DayOfWeek.Monday)
                         {
-                            Console.WriteLine(data.DayOfWeek);
-                            Console.WriteLine(data);
-                            Console.WriteLine("Создаем отчет для недели", data.ToString("dd.MM.yyyy"));
 
                             return new DateTime[] { data };
                         }
@@ -89,7 +85,7 @@ namespace Swsyn.Manager
         }
         private static string[]? GetProjectNames(AppSettings settings)
         {
-            Console.WriteLine("Would you like to specify projects? (Хотели бы вы указать проекты?) [y/n]");
+            Console.WriteLine("Would you like to specify projects? [y/n]");
 
             ConsoleKey choice;
             do
@@ -115,7 +111,7 @@ namespace Swsyn.Manager
                         if (settings.Include == null)
                         {
                             //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
-                            string[] error = { "There are no projects specified (Проекты не указаны в include)" };
+                            string[] error = { "There are no projects specified" };
                             return error;
                         }
 
