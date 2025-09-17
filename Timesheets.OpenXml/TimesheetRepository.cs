@@ -31,7 +31,7 @@ namespace Timesheets.OpenXml {
         }
 
         public void WriteTimesheet(string targetPath, string projectName, Timesheet timesheet, string contractor, string customer) {
-            string fileName = $"Timesheet_{projectName}_{timesheet.StartDate.ToString("ddMMyyyy")}.xlsx";
+            string fileName = $"Timesheet_{projectName}_{timesheet.StartDate.ToString("ddMMyy")}.xlsx";
             string writePath = Path.Combine(targetPath, fileName);
 
             TimesheetWriter.Write(writePath, timesheet, contractor, customer);
