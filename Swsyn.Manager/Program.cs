@@ -33,6 +33,9 @@ namespace Swsyn.Manager
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());
             }
+
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
         private static DateTime[] ProjectDataProcessing()
         {
