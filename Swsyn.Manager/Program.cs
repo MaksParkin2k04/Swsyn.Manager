@@ -121,7 +121,6 @@ namespace Swsyn.Manager
                             Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
                             return settings.Include;
 
-                            ProjectDataProcessing();
                         }
                         break;
                     //Enter @ Key
@@ -140,7 +139,6 @@ namespace Swsyn.Manager
                             Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
                             return settings.Include;
 
-                            ProjectDataProcessing();
                         }
 
                         break;
