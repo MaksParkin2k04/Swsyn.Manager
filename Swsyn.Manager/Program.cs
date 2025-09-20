@@ -41,83 +41,86 @@ namespace Swsyn.Manager
 
         private static DateTime[] ProjectDataProcessing()
         {
-            Console.WriteLine("Would you like to specify period? [y/n]");
 
-            string? choice = Console.ReadLine();
-
-            if (choice == "y")
+            while (true)
             {
-                Console.WriteLine("Type week Monday dates (e.g. 11.08.2025, 18.08.2025):");
+                Console.WriteLine("Would you like to specify period? [y/n]");
+                string? choice = Console.ReadLine();
 
-                string targetDateFormat = "dd.MM.yyyy";
-                DateTime data;
-
-                string enteredDateString = Console.ReadLine();
-
-                data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
-
-                if (data.DayOfWeek == DayOfWeek.Monday)
+                if (choice == "y")
                 {
+                    Console.WriteLine("Type week Monday dates (e.g. 11.08.2025, 18.08.2025):");
 
-                    return new DateTime[] { data };
+                    string targetDateFormat = "dd.MM.yyyy";
+                    DateTime data;
+
+                    string enteredDateString = Console.ReadLine();
+
+                    data = DateTime.ParseExact(enteredDateString, targetDateFormat, CultureInfo.InvariantCulture);
+
+                    if (data.DayOfWeek == DayOfWeek.Monday)
+                    {
+
+                        return new DateTime[] { data };
+                    }
+                    else
+                    {
+                        Console.WriteLine("Введен не понедельник");
+                    }
                 }
-                else
+
+                else if (choice == "n" || string.IsNullOrEmpty(choice))
                 {
-                    Console.WriteLine("Введен не понедельник");
+                    DateTime today = DateTime.Today;
+
+                    int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
+                    DateTime monday = today.AddDays(-daysSinceMonday);
+
+                    DateTime sunday = monday.AddDays(6);
+
+                    Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
+
+                    return new DateTime[] { monday };
                 }
             }
-
-            else if (choice == "n" || string.IsNullOrEmpty(choice))
-            {
-                DateTime today = DateTime.Today;
-
-                int daysSinceMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
-                DateTime monday = today.AddDays(-daysSinceMonday);
-
-                DateTime sunday = monday.AddDays(6);
-
-                Console.WriteLine($"Создаем отчет для текущей недели: с {monday:dd.MM.yyyy} по {sunday:dd.MM.yyyy}");
-
-                return new DateTime[] { monday };
-            }
-
-            return null;
         }
 
         private static string[]? GetProjectNames(AppSettings settings)
         {
-            Console.WriteLine("Would you like to specify projects? [y/n]");
 
-            string? choice = Console.ReadLine();
-
-            if (choice == "y")
+            while (true)
             {
-                Console.WriteLine("Type project names (comma separated):");
-                // Названия проектов через запятую
-                string? projects = Console.ReadLine();
-                // Возвращаем названия проектов, введенных пользователем
-                return projects != null && projects != string.Empty ? projects.Split(',') : null;
-            }
+                Console.WriteLine("Would you like to specify projects? [y/n]");
+                string? choice = Console.ReadLine();
 
-            else if (choice == "n" || string.IsNullOrEmpty(choice))
+                if (choice == "y")
                 {
-                if (settings.Include == null)
-                {
-                    //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
-                    string[] error = { "There are no projects specified" };
-                    return error;
+                    Console.WriteLine("Type project names (comma separated):");
+                    // Названия проектов через запятую
+                    string? projects = Console.ReadLine();
+                    // Возвращаем названия проектов, введенных пользователем
+                    return projects != null && projects != string.Empty ? projects.Split(',') : null;
                 }
 
-                else if (settings.Include != null)
+                else if (choice == "n" || string.IsNullOrEmpty(choice))
                 {
-                    Console.WriteLine("Генерируем отчеты для проектов из include");
-                    Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
-                    return settings.Include;
+                    if (settings.Include == null)
+                    {
+                        //  Console.WriteLine("There are no projects specified (Проекты не указаны в include)");
+                        string[] error = { "There are no projects specified" };
+                        return error;
+                    }
+
+                    else if (settings.Include != null)
+                    {
+                        Console.WriteLine("Генерируем отчеты для проектов из include");
+                        Console.WriteLine($"Include:{string.Join("\n\t", settings.Include.Select(i => $"'{i}'"))}");
+                        return settings.Include;
+
+                    }
 
                 }
-
             }
-            return null;
         }
         private static void GenerateTimesheet(ITimesheetRepository timesheetRepository, string[] projectNames, DateTime[] mondayDates, AppSettings settings)
         {
